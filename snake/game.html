@@ -5,34 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Snake Game</title>
     <style>
-        /* Add CSS styles here */
-        #gameCanvas {
-            width: 400px; /* Adjust canvas width */
-            height: 400px; /* Adjust canvas height */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        canvas {
             border: 1px solid black;
-            background-color: #f0f0f0;
-        }
-
-        .snake {
-            width: 20px; /* Adjust snake segment width */
-            height: 20px; /* Adjust snake segment height */
-            background-color: green; /* Adjust snake color */
-            position: absolute;
-        }
-
-        .food {
-            width: 20px; /* Adjust food item width */
-            height: 20px; /* Adjust food item height */
-            background-color: red; /* Adjust food color */
-            position: absolute;
         }
     </style>
 </head>
 <body>
-    <canvas id="gameCanvas"></canvas>
-    <br>
-    <button onclick="startGame()">Start Game</button>
-
-    <script src="script.js"></script>
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+    <script src="snake.js"></script>
 </body>
 </html>
