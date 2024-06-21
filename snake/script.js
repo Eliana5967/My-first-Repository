@@ -1,140 +1,98 @@
-// script.js
+// Define constants
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+const scale = 20;
+const rows = canvas.height / scale;
+const columns = canvas.width / scale;
 
-let canvas;
-let ctx;
-let snake;
-let food;
-let snakeDirection;
-let gameInterval;
-let gameSpeed = 100; // Adjust game speed (lower value means faster)
+// Initial snake position
+let snake = [];
 
-function startGame() {
-    canvas = document.getElementById('gameCanvas');
-    ctx = canvas.getContext('2d');
+// Initial food position
+let food = {
+    x: Math.floor(Math.random() * columns),
+    y: Math.floor(Math.random() * rows)
+};
 
-    snake = [{ x: 200, y: 200 }]; // Initial snake position
-    snakeDirection = 'right'; // Initial snake direction
+// Initial direction
+let direction;
 
-    createFood();
+// Event listener for key presses to control snake direction
+document.addEventListener("keydown", (event) => {
+    if (event.key === "ArrowLeft" && direction !== "right") {
+        direction = "left";
+    } else if (event.key === "ArrowUp" && direction !== "down") {
+        direction = "up";
+    } else if (event.key === "ArrowRight" && direction !== "left") {
+        direction = "right";
+    } else if (event.key === "ArrowDown" && direction !== "up") {
+        direction = "down";
+    }
+});
 
-    if (gameInterval) {
-        clearInterval(gameInterval);
+// Function to draw everything on the canvas
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Draw the snake
+    ctx.fillStyle = "green";
+    for (let i = 0; i < snake.length; i++) {
+        ctx.fillRect(snake[i].x * scale, snake[i].y * scale, scale, scale);
     }
 
-    gameInterval = setInterval(gameLoop, gameSpeed);
+    // Draw the food
+    ctx.fillStyle = "red";
+    ctx.fillRect(food.x * scale, food.y * scale, scale, scale);
 
-    // Listen for arrow key presses to change snake direction
-    document.addEventListener('keydown', changeDirection);
-}
+    // Move the snake
+    let headX = snake[0].x;
+    let headY = snake[0].y;
 
-function gameLoop() {
-    moveSnake();
-    if (checkCollision()) {
-        gameOver();
-        return;
-    }
-    drawCanvas();
-    drawSnake();
-    drawFood();
-}
+    // Determine direction of movement
+    if (direction === "left") headX--;
+    else if (direction === "up") headY--;
+    else if (direction === "right") headX++;
+    else if (direction === "down") headY++;
 
-function moveSnake() {
-    // Create a new head based on current direction
-    let head = { x: snake[0].x, y: snake[0].y };
-    switch (snakeDirection) {
-        case 'up':
-            head.y -= 20;
-            break;
-        case 'down':
-            head.y += 20;
-            break;
-        case 'left':
-            head.x -= 20;
-            break;
-        case 'right':
-            head.x += 20;
-            break;
-    }
+    // Check if snake eats food
+    if (headX === food.x && headY === food.y) {
+        // Increase snake length
+        snake.unshift({ x: headX, y: headY });
 
-    // Add new head to beginning of snake array
-    snake.unshift(head);
-
-    // Check if snake has eaten food
-    if (head.x === food.x && head.y === food.y) {
-        createFood();
+        // Generate new food position
+        food = {
+            x: Math.floor(Math.random() * columns),
+            y: Math.floor(Math.random() * rows)
+        };
     } else {
-        // Remove tail segment if snake did not eat food
+        // Remove the tail
         snake.pop();
     }
+
+    // Game over conditions
+    if (headX < 0 || headX >= columns || headY < 0 || headY >= rows || checkCollision(headX, headY)) {
+        clearInterval(gameInterval);
+        alert("Game Over! Your score: " + (snake.length - 1));
+        window.location.reload();
+    }
+
+    // Add new head position
+    let newHead = {
+        x: headX,
+        y: headY
+    };
+    snake.unshift(newHead);
 }
 
-function checkCollision() {
-    // Check collision with walls or itself
-    let head = snake[0];
-    if (head.x < 0 || head.x >= canvas.width || head.y < 0 || head.y >= canvas.height) {
-        return true; // Collision with walls
-    }
+// Function to check collision with itself
+function checkCollision(x, y) {
     for (let i = 1; i < snake.length; i++) {
-        if (head.x === snake[i].x && head.y === snake[i].y) {
-            return true; // Collision with itself
+        if (x === snake[i].x && y === snake[i].y) {
+            return true;
         }
     }
     return false;
 }
 
-function createFood() {
-    // Randomly position food within canvas
-    let x = Math.floor(Math.random() * canvas.width / 20) * 20;
-    let y = Math.floor(Math.random() * canvas.height / 20) * 20;
-
-    // Ensure food does not overlap with snake
-    for (let segment of snake) {
-        if (segment.x === x && segment.y === y) {
-            return createFood();
-        }
-    }
-
-    food = { x: x, y: y };
-}
-
-function drawCanvas() {
-    // Clear canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-}
-
-function drawSnake() {
-    // Draw each segment of the snake
-    snake.forEach(segment => {
-        ctx.fillStyle = 'green';
-        ctx.fillRect(segment.x, segment.y, 20, 20); // Adjust size based on CSS
-    });
-}
-
-function drawFood() {
-    // Draw food item
-    ctx.fillStyle = 'red';
-    ctx.fillRect(food.x, food.y, 20, 20); // Adjust size based on CSS
-}
-
-function changeDirection(event) {
-    // Change snake direction based on arrow key press
-    switch (event.key) {
-        case 'ArrowUp':
-            if (snakeDirection !== 'down') snakeDirection = 'up';
-            break;
-        case 'ArrowDown':
-            if (snakeDirection !== 'up') snakeDirection = 'down';
-            break;
-        case 'ArrowLeft':
-            if (snakeDirection !== 'right') snakeDirection = 'left';
-            break;
-        case 'ArrowRight':
-            if (snakeDirection !== 'left') snakeDirection = 'right';
-            break;
-    }
-}
-
-function gameOver() {
-    clearInterval(gameInterval);
-    alert('Game Over! Your score: ' + (snake.length - 1));
-}
+// Start the game loop
+let gameInterval = setInterval(draw, 100);
